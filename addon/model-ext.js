@@ -75,8 +75,12 @@ Model.reopen({
    */
   saveChanges(options) {
     Tracker.setupTracking(this);
-    Tracker.saveChanges(this, options);
-    Tracker.triggerIsDirtyReset(this);
+    let _this = this
+    Ember.run.later({}, function() {
+      Tracker.saveChanges(_this, options);
+      Tracker.triggerIsDirtyReset(_this);
+    }, 10);
+    
   },
 
   saveTrackerChanges(options) {
