@@ -1,15 +1,14 @@
-import Ember from 'ember';
 import { module, test } from 'qunit';
 import { setupTest } from 'ember-qunit';
 import { run } from '@ember/runloop';
 import FactoryGuy, {
-  build, make, makeNew, makeList, mockUpdate, mockFindRecord, mockReload,
+  build, make, makeList, mockUpdate, mockFindRecord, mockReload,
   mockDelete, manualSetup, mockCreate
 } from 'ember-data-factory-guy';
 import { initializer as modelInitializer } from 'ember-data-change-tracker';
 import Tracker, { ModelTrackerKey } from 'ember-data-change-tracker/tracker';
 import sinon from 'sinon';
-import EmberObject, { observer } from '@ember/object';
+import EmberObject, { get, observer } from '@ember/object';
 
 modelInitializer();
 
@@ -571,15 +570,6 @@ module('Unit | Model', function(hooks) {
       assert.equal(company.get('currentState.stateName'), 'root.loaded.saved');
       assert.deepEqual(company.get('blob'), [1, 2, 3]);
     });
-
-    test('new model', function(assert) {
-      let user = makeNew('user');
-      run(() => user.setProperties({name: 'FROO'}));
-      run(() => user.rollback());
-
-      assert.equal(user.get('isNew'), false);
-      assert.equal(user.get('name'), undefined);
-    });
   });
 
   module('#isDirty', function() {
@@ -588,8 +578,8 @@ module('Unit | Model', function(hooks) {
       let company = make('company'),
           user    = make('user', 'empty');
 
-      assert.equal(Ember.typeOf(user.isDirty), 'object');
-      assert.equal(company.isDirty, undefined);
+      assert.equal(get(user, 'isDirty'), false);
+      assert.equal(get(company, 'isDirty'), undefined);
     });
 
     module('with auto save model', function() {
