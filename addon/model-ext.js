@@ -75,8 +75,12 @@ Model.reopen({
    */
   saveChanges(options) {
     Tracker.setupTracking(this);
-    Tracker.saveChanges(this, options);
-    Tracker.triggerIsDirtyReset(this);
+    let _this = this
+    Ember.run.later({}, function() {
+      Tracker.saveChanges(_this, options);
+      Tracker.triggerIsDirtyReset(_this);
+    }, 10);
+    
   },
 
   saveTrackerChanges(options) {
@@ -100,6 +104,7 @@ Model.reopen({
       Tracker.initializeDirtiness(this);
     }
     if (Tracker.isAutoSaveEnabled(this)) {
+      Tracker.setupTracking(this);
       this.saveChanges();
     }
   }),
@@ -120,7 +125,7 @@ Model.reopen({
 
   // There is no didReload callback on models, so have to override reload
   reload() {
-    let promise = this._super(...arguments);
+    let promise = this._super();
     promise.then(() => {
       if (Tracker.isAutoSaveEnabled(this)) {
         this.saveChanges();

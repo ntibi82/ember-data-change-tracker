@@ -294,8 +294,9 @@ export default class Tracker {
     }
     let keyInfo = info && info[key] || this.metaInfo(model, key);
     if (keyInfo) {
-      let current = this.serialize(model, key, keyInfo);
+      let current = keyInfo.type === 'hasMany' ? model.hasMany(key).ids() : model.belongsTo(key).id();
       let last = this.lastValue(model, key);
+
       switch (keyInfo.type) {
         case 'attribute':
         case 'belongsTo':
@@ -380,8 +381,8 @@ export default class Tracker {
    */
   static saveChanges(model, {except = []} = {}) {
     let metaInfo = this.metaInfo(model);
-    let keys = Object.keys(metaInfo).filter(key => !except.includes(key));
-    keys.forEach(key => Tracker.saveKey(model, key));
+    let keys = Object.keys(metaInfo).filter(key=>!except.includes(key));
+    keys.forEach(key => Tracker.saveKey(model, key, metaInfo[key]));
   }
 
   /**
@@ -400,10 +401,15 @@ export default class Tracker {
    * @param {DS.Model} model
    * @param {String} key attribute/association name
    */
-  static saveKey(model, key) {
+  static saveKey(model, key, info) {  
     let tracker = model.get(ModelTrackerKey) || {},
-        isNew   = model.get('isNew');
-    tracker[key] = isNew ? undefined : this.serialize(model, key);
+        isNew   = model.get('isNew'),
+        type    = info.type;
+    if (isNew) {
+      tracker[key] = undefined
+    } else {
+      tracker[key] = type === 'hasMany' ? model.hasMany(key).ids() : model.belongsTo(key).id();
+    }
     model.set(ModelTrackerKey, tracker);
   }
 
